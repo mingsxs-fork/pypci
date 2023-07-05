@@ -1,6 +1,6 @@
 import os
-from mmap import mmap, PROT_READ, PROT_WRITE, PAGESIZE
-from struct import pack, unpack
+import mmap
+import struct
 
 
 class Bar(object):
@@ -11,53 +11,83 @@ class Bar(object):
     """
 
     def __init__(self, filename):
-        self.__map = None
+        self.__mmio = None  # mmio mapped space
         self.__stat = os.stat(filename)
         fd = os.open(filename, os.O_RDWR)
-        self.__map = mmap(fd, 0, prot=PROT_READ | PROT_WRITE)
+        self.__mmio = mmap.mmap(fd, 0, prot=mmap.PROT_READ | mmap.PROT_WRITE)
         os.close(fd)
 
     def __del__(self):
-        if self.__map is not None:
-            self.__map.close()
+        if self.__mmio is not None:
+            self.__mmio.close()
 
     def __check_offset(self, offset):
         """ Check if the given offset is properly DW-aligned and the access
             falls within the BAR size.
 
         """
-        if offset & 0x3:
-            raise ValueError("unaligned access to offset 0x%x" % (offset))
+        if offset < 0:
+            raise ValueError("invalid access to offset %d" % offset)
+
+        if offset & 0x3:  # dword based offset
+            offset = offset << 2
+
         if offset + 3 > self.size:
             raise ValueError("offset (0x%x) exceeds BAR size (0x%x)" %
                              (offset, self.size))
 
-    def read(self, offset):
+        return offset
+
+    def read(self, offset, ndword=1):
         """ Read a 32 bit / double word value from offset.
 
         :param int offset: BAR byte offset to read from.
+        :param int nword: number of words to read with `offset` as base.
         :returns: Double word read from the given BAR offset.
         :rtype: double word / 32 bit unsigned long / int
 
         """
-        self.__check_offset(offset)
-        reg = self.__map[offset:offset+4]
-        return unpack("<L", reg)[0]
+        offset = self.__check_offset(offset)
 
-    def write(self, offset, data):
+        # read single dword
+        if ndword == 1:
+            reg = self.__mmio[offset: offset + 4]
+            return struct.unpack("<L", reg)[0]
+
+        # read multiple continuous dwords
+        dwords = []
+        while ndword > 0:
+            reg = self.__mmio[offset:offset + 4]
+            dwords.append(struct.unpack("<L", reg)[0])
+            offset += 4
+            ndword -= 1
+        return dwords
+
+    def write(self, offset, dwords):
         """ Write a 32 bit / double word value to offset.
 
         :param int offset: BAR byte offset to write to.
         :param int data: double word to write to the given BAR offset.
         """
-        self.__check_offset(offset)
-        self.__map.seek(offset)
-        reg = pack("<L", data)
-        # write to map. no ret. check: ValueError/TypeError is raised on error
-        self.__map.write(reg)
-        # Flush current page for immediate update.
-        page_offset = offset & (~(PAGESIZE - 1) & 0xffffffff)
-        self.__map.flush(page_offset, PAGESIZE)
+        offset = self.__check_offset(offset)
+        self.__mmio.seek(offset, os.SEEK_SET)
+        if isinstance(dwords, (list, tuple)):
+            for dword in dwords:
+                # pack dword data
+                reg = struct.pack("<L", dword)
+                # write to map. no ret. check: ValueError/TypeError is raised on error
+                self.__mmio.write(reg)
+                # Flush current page for immediate update.
+                page_offset = offset & (~(mmap.PAGESIZE - 1) & 0xffffffff)
+                self.__mmio.flush(page_offset, mmap.PAGESIZE)
+                offset += 4
+        else:
+            reg = struct.pack("<L", dwords)
+            # write to map. no ret. check: ValueError/TypeError is raised on error
+            self.__mmio.write(reg)
+            # Flush current page for immediate update.
+            page_offset = offset & (~(mmap.PAGESIZE - 1) & 0xffffffff)
+            self.__mmio.flush(page_offset, mmap.PAGESIZE)
         # TODO: check return value, only for >=Python3.8
 
     @property
