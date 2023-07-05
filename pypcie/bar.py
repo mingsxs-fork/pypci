@@ -21,21 +21,18 @@ class Bar(object):
         if self.__mmio is not None:
             self.__mmio.close()
 
-    def __check_offset(self, offset):
-        """ Check if the given offset is properly DW-aligned and the access
-            falls within the BAR size.
+    def __fix_offset(self, offset):
+        """assume given `offset` is dword based index, now fix it to
+        byte based index.
 
         """
         if offset < 0:
             raise ValueError("invalid access to offset %d" % offset)
 
-        if offset & 0x3:  # dword based offset
-            offset = offset << 2
-
+        offset = offset << 2
         if offset + 3 > self.size:
             raise ValueError("offset (0x%x) exceeds BAR size (0x%x)" %
                              (offset, self.size))
-
         return offset
 
     def read(self, offset, ndword=1):
@@ -47,7 +44,7 @@ class Bar(object):
         :rtype: double word / 32 bit unsigned long / int
 
         """
-        offset = self.__check_offset(offset)
+        offset = self.__fix_offset(offset)
 
         # read single dword
         if ndword == 1:
@@ -69,7 +66,7 @@ class Bar(object):
         :param int offset: BAR byte offset to write to.
         :param int data: double word to write to the given BAR offset.
         """
-        offset = self.__check_offset(offset)
+        offset = self.__fix_offset(offset)
         self.__mmio.seek(offset, os.SEEK_SET)
         if isinstance(dwords, (list, tuple)):
             for dword in dwords:
