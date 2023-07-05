@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import os
 from mmap import mmap, PROT_READ, PROT_WRITE, PAGESIZE
 from struct import pack, unpack
@@ -11,7 +10,7 @@ class Bar(object):
 
     """
 
-    def __init__(self, filename: str):
+    def __init__(self, filename):
         self.__map = None
         self.__stat = os.stat(filename)
         fd = os.open(filename, os.O_RDWR)
@@ -22,7 +21,7 @@ class Bar(object):
         if self.__map is not None:
             self.__map.close()
 
-    def __check_offset(self, offset: int):
+    def __check_offset(self, offset):
         """ Check if the given offset is properly DW-aligned and the access
             falls within the BAR size.
 
@@ -33,7 +32,7 @@ class Bar(object):
             raise ValueError("offset (0x%x) exceeds BAR size (0x%x)" %
                              (offset, self.size))
 
-    def read(self, offset: int):
+    def read(self, offset):
         """ Read a 32 bit / double word value from offset.
 
         :param int offset: BAR byte offset to read from.
@@ -45,7 +44,7 @@ class Bar(object):
         reg = self.__map[offset:offset+4]
         return unpack("<L", reg)[0]
 
-    def write(self, offset: int, data: int):
+    def write(self, offset, data):
         """ Write a 32 bit / double word value to offset.
 
         :param int offset: BAR byte offset to write to.

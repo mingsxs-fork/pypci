@@ -12,7 +12,7 @@ class Device(object):
 
     __base = "/sys/bus/pci/devices/"
 
-    def __init__(self, pciid: str):
+    def __init__(self, pciid):
         self.__base = os.path.join(self.__base, str(pciid))
         if not os.access(self.__base, os.F_OK):
             raise ValueError("Device not found: %s" % (self.__base))
@@ -22,7 +22,7 @@ class Device(object):
             if os.access(resfile, os.F_OK):
                 self.bar[barnum] = Bar(resfile)
 
-    def __get_attr__(self, attr: str, attr_type: type):
+    def __get_attr__(self, attr, attr_type):
         """ Read a sysfs attribute and convert the received string to the
         given attribute type.
 
@@ -42,7 +42,7 @@ class Device(object):
             else:
                 return attr_type(val)
 
-    def vendor(self) -> int:
+    def vendor(self):
         """ Get the PCI vendor ID.
 
         :returns: PCI vendor ID
@@ -50,7 +50,7 @@ class Device(object):
         """
         return self.__get_attr__("vendor", int)
 
-    def device(self) -> int:
+    def device(self):
         """ Get the PCI device ID.
 
         :returns: PCI device ID
@@ -58,7 +58,7 @@ class Device(object):
         """
         return self.__get_attr__("device", int)
 
-    def revision(self) -> int:
+    def revision(self):
         """ Get the PCI revision Number.
 
         :returns: PCI revision Number
@@ -66,7 +66,7 @@ class Device(object):
         """
         return self.__get_attr__("revision", int)
 
-    def subsystem_vendor(self) -> int:
+    def subsystem_vendor(self):
         """ Get the PCI subsystem vendor ID.
 
         :returns: PCI subsystem vendor ID
@@ -74,7 +74,7 @@ class Device(object):
         """
         return self.__get_attr__("subsystem_vendor", int)
 
-    def subsystem_device(self) -> int:
+    def subsystem_device(self):
         """ Get the PCI subsystem device ID.
 
         :returns: PCI subsystem device ID
