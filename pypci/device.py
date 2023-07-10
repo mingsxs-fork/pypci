@@ -15,11 +15,11 @@ class Device(object):
         self.__base = os.path.join(self.__base, str(pciid))
         if not os.access(self.__base, os.F_OK):
             raise IOError("Device not found: %s" % (self.__base))
-        self.bar = [None] * 6
+        self.bars = [None] * 6
         for barnum in range(0, 6):
             resfile = os.path.join(self.__base, "resource%d" % (barnum))
             if os.access(resfile, os.F_OK):
-                self.bar[barnum] = Bar(resfile)
+                self.bars[barnum] = Bar(resfile)
 
     def __get_attr__(self, attr, attr_type):
         """ Read a sysfs attribute and convert the received string to the
@@ -40,6 +40,10 @@ class Device(object):
                 return attr_type(val, 0)
             else:
                 return attr_type(val)
+
+    def __del__(self):
+        for bar in self.bars:
+            del bar  # close mmio object
 
     def vendor(self):
         """ Get the PCI vendor ID.
