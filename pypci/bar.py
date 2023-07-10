@@ -27,7 +27,7 @@ class Bar(object):
 
         """
         if offset < 0:
-            raise ValueError("invalid access to offset %d" % offset)
+            raise ValueError("invalid register offset %d" % offset)
 
         offset = offset << 2
         if offset + 3 > self.size:

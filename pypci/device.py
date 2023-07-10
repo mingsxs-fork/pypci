@@ -14,7 +14,7 @@ class Device(object):
     def __init__(self, pciid):
         self.__base = os.path.join(self.__base, str(pciid))
         if not os.access(self.__base, os.F_OK):
-            raise ValueError("Device not found: %s" % (self.__base))
+            raise IOError("Device not found: %s" % (self.__base))
         self.bar = [None] * 6
         for barnum in range(0, 6):
             resfile = os.path.join(self.__base, "resource%d" % (barnum))
@@ -33,7 +33,7 @@ class Device(object):
         """
         path = os.path.join(self.__base, attr)
         if not os.access(path, os.F_OK):
-            raise ValueError("Cannot read attribute %s" % (attr))
+            raise IOError("Cannot read attribute %s" % (attr))
         with open(path) as f:
             val = f.read()[:-1]  # strip newline
             if attr_type is int:

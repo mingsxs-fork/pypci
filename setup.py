@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 # Setting up
 setup(
-    name="pyPCIe",
+    name="pypci",
     version=VERSION,
     author="Heiko Engel",
     author_email="<heikoengel@users.noreply.github.com>",
@@ -15,10 +15,10 @@ setup(
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     packages=find_packages(),
-    url="https://github.com/heikoengel/pyPCIe",
+    url="https://github.com/mingsxs-fork/pypci",
     install_requires=[],
-    keywords=['python', 'pcie'],
-    classifiers= [
+    keywords=['python', 'pci'],
+    classifiers=[
         "Development Status :: 3 - Alpha",
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
