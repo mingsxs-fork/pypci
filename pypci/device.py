@@ -21,7 +21,11 @@ class Device(object):
             if os.access(resfile, os.F_OK):
                 self.bars[barnum] = Bar(resfile)
 
-    def __get_attr__(self, attr, attr_type):
+    def __del__(self):
+        for bar in self.bars:
+            del bar  # close mmio object
+
+    def __get_attr(self, attr, attr_type):
         """ Read a sysfs attribute and convert the received string to the
         given attribute type.
 
@@ -41,17 +45,13 @@ class Device(object):
             else:
                 return attr_type(val)
 
-    def __del__(self):
-        for bar in self.bars:
-            del bar  # close mmio object
-
     def vendor(self):
         """ Get the PCI vendor ID.
 
         :returns: PCI vendor ID
         :rtype: int
         """
-        return self.__get_attr__("vendor", int)
+        return self.__get_attr("vendor", int)
 
     def device(self):
         """ Get the PCI device ID.
@@ -59,7 +59,7 @@ class Device(object):
         :returns: PCI device ID
         :rtype: int
         """
-        return self.__get_attr__("device", int)
+        return self.__get_attr("device", int)
 
     def revision(self):
         """ Get the PCI revision Number.
@@ -67,7 +67,7 @@ class Device(object):
         :returns: PCI revision Number
         :rtype: int
         """
-        return self.__get_attr__("revision", int)
+        return self.__get_attr("revision", int)
 
     def subsystem_vendor(self):
         """ Get the PCI subsystem vendor ID.
@@ -75,7 +75,7 @@ class Device(object):
         :returns: PCI subsystem vendor ID
         :rtype: int
         """
-        return self.__get_attr__("subsystem_vendor", int)
+        return self.__get_attr("subsystem_vendor", int)
 
     def subsystem_device(self):
         """ Get the PCI subsystem device ID.
@@ -83,4 +83,4 @@ class Device(object):
         :returns: PCI subsystem device ID
         :rtype: int
         """
-        return self.__get_attr__("subsystem_device", int)
+        return self.__get_attr("subsystem_device", int)
